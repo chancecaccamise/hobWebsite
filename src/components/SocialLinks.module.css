@@ -1,0 +1,32 @@
+.list {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.link {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--accent-ink);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.link:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.link svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}

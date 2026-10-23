@@ -1,0 +1,85 @@
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--background);
+}
+
+.backgroundImage {
+  object-fit: cover;
+  /* Subject sits left of center; keep them in frame on narrow screens. */
+  object-position: 25% 40%;
+}
+
+/* Darken the photo so white text stays readable over the bright window. */
+.background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center 45%, rgba(20, 14, 8, 0.25), rgba(20, 14, 8, 0.6) 75%),
+    linear-gradient(to bottom, rgba(20, 14, 8, 0.35), rgba(20, 14, 8, 0.45));
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.25rem;
+  padding: 2.5rem 1rem 3rem;
+  text-align: center;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eyebrow {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+  line-height: 1.05;
+}
+
+.serif {
+  font-family: var(--font-serif);
+  font-size: clamp(2.75rem, 9vw, 5.75rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.sans {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.swash {
+  position: absolute;
+  right: 0;
+  bottom: -0.3em;
+  width: 62%;
+  height: 0.22em;
+  overflow: visible;
+}
+
+.subtext {
+  max-width: 28rem;
+  margin-top: 2rem;
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  line-height: 1.45;
+}
