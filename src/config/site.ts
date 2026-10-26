@@ -17,9 +17,9 @@ export const siteConfig = {
 
   // Links with an empty href are hidden.
   social: {
-    instagram: "https://instagram.com/",
-    tiktok: "https://tiktok.com/",
-    facebook: "https://facebook.com/",
+    instagram: "https://www.instagram.com/hausofbutts/",
+    tiktok: "https://www.tiktok.com/@hausofbutts",
+    facebook: "",
   },
 };
 
