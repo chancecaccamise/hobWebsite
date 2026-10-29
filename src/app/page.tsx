@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { siteConfig } from "@/config/site";
+import { ContactForm } from "@/components/ContactForm";
 import { Countdown } from "@/components/Countdown";
 import { Logo } from "@/components/Logo";
 import { SignupForm } from "@/components/SignupForm";
@@ -53,6 +54,7 @@ export default function Home() {
         <Countdown launchDate={siteConfig.launchDate} />
         <SignupForm />
         <SocialLinks />
+        <ContactForm />
       </main>
     </>
   );

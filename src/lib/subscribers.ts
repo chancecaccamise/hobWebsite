@@ -1,29 +1,57 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import "server-only";
+import { createClient } from "@/lib/supabase/server";
+import { toError } from "@/lib/supabase/errors";
 
-// Local JSON storage so signups work out of the box with `npm run dev`.
-// Swap this for an email provider (Mailchimp, ConvertKit, Klaviyo, etc.) or a
-// database before deploying — serverless hosts don't keep files written at runtime.
-const DATA_FILE = path.join(process.cwd(), "data", "subscribers.json");
+export type Subscriber = { id: string; email: string; createdAt: string };
 
-type Subscriber = { email: string; subscribedAt: string };
-
-async function readSubscribers(): Promise<Subscriber[]> {
-  try {
-    return JSON.parse(await readFile(DATA_FILE, "utf8"));
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
-    throw error;
-  }
-}
+const UNIQUE_VIOLATION = "23505";
+const RANGE_NOT_SATISFIABLE = "PGRST103";
 
 /** Returns false if the email was already subscribed. */
 export async function addSubscriber(email: string): Promise<boolean> {
-  const subscribers = await readSubscribers();
-  if (subscribers.some((s) => s.email === email)) return false;
+  const supabase = await createClient();
+  const { error } = await supabase.from("subscribers").insert({ email });
 
-  subscribers.push({ email, subscribedAt: new Date().toISOString() });
-  await mkdir(path.dirname(DATA_FILE), { recursive: true });
-  await writeFile(DATA_FILE, JSON.stringify(subscribers, null, 2));
+  if (error?.code === UNIQUE_VIOLATION) return false;
+  if (error) throw toError(error);
   return true;
+}
+
+/** Total signups, and how many came in over the last 7 days. */
+export async function getSubscriberCounts() {
+  const supabase = await createClient();
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const table = () => supabase.from("subscribers").select("id", { count: "exact", head: true });
+
+  const [all, recent] = await Promise.all([table(), table().gte("created_at", weekAgo)]);
+  if (all.error) throw toError(all.error);
+  if (recent.error) throw toError(recent.error);
+
+  return { total: all.count ?? 0, lastWeek: recent.count ?? 0 };
+}
+
+/**
+ * Lists subscribers, newest first. Row-level security only returns rows to
+ * admins, so a non-admin session gets an empty list.
+ */
+export async function listSubscribers(page: number, pageSize: number) {
+  const supabase = await createClient();
+  const from = (page - 1) * pageSize;
+
+  const { data, count, error } = await supabase
+    .from("subscribers")
+    .select("id, email, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, from + pageSize - 1);
+
+  // Asking for a page past the end isn't an error worth crashing over.
+  if (error?.code === RANGE_NOT_SATISFIABLE) return { subscribers: [], total: 0 };
+  if (error) throw toError(error);
+
+  const subscribers: Subscriber[] = data.map((row) => ({
+    id: row.id,
+    email: row.email,
+    createdAt: row.created_at,
+  }));
+  return { subscribers, total: count ?? 0 };
 }

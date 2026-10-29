@@ -12,8 +12,18 @@ export const siteConfig = {
   description:
     "House of Butts is launching soon. Sign up to be the first to know when we open our doors.",
 
+  contact: {
+    eyebrow: "Before we open",
+    heading: "Pull up a chair",
+    text: "Got a question, an idea, or just can't wait to say hello? Leave us a note and we'll get back to you personally.",
+    button: "Send note",
+  },
+
   // Override with NEXT_PUBLIC_LAUNCH_DATE in .env.local. Include a timezone offset.
   launchDate: process.env.NEXT_PUBLIC_LAUNCH_DATE ?? "2027-01-01T00:00:00-05:00",
+
+  // Time zone for dates shown in the admin dashboard.
+  timeZone: "America/New_York",
 
   // Links with an empty href are hidden.
   social: {
