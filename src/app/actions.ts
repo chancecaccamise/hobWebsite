@@ -1,6 +1,7 @@
 "use server";
 
 import { addContactSubmission } from "@/lib/contact";
+import { sendContactToFormspree } from "@/lib/formspree";
 import { addSubscriber } from "@/lib/subscribers";
 
 export type SubscribeState = {
@@ -92,18 +93,29 @@ export async function submitContact(
     return fail("Something went wrong. Please try again.");
   }
 
-  try {
-    await addContactSubmission({
-      name: fields.name,
-      email: fields.email,
-      phone: fields.phone || null,
-      subject: subject || null,
-      message: fields.message,
-      inquiryType: inquiryType || null,
-    });
-    return { status: "success", message: "Thanks for the note! We'll be in touch soon." };
-  } catch (error) {
-    console.error("Failed to save contact submission", error);
+  const submission = {
+    name: fields.name,
+    email: fields.email,
+    phone: fields.phone || null,
+    subject: subject || null,
+    message: fields.message,
+    inquiryType: inquiryType || null,
+  };
+
+  // Save to the admin inbox and email the owner via Formspree in parallel.
+  // Either one landing means the message reached us, so only fail if both do.
+  const [saved, emailed] = await Promise.allSettled([
+    addContactSubmission(submission),
+    sendContactToFormspree(submission),
+  ]);
+  if (saved.status === "rejected") {
+    console.error("Failed to save contact submission", saved.reason);
+  }
+  if (emailed.status === "rejected") {
+    console.error("Failed to send contact submission to Formspree", emailed.reason);
+  }
+  if (saved.status === "rejected" && emailed.status === "rejected") {
     return fail("Something went wrong. Please try again.");
   }
+  return { status: "success", message: "Thanks for the note! We'll be in touch soon." };
 }
